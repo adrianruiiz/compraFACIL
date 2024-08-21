@@ -27,15 +27,26 @@
                                 
                                 <!-- Campo de búsqueda de categoría -->
                                 <div class="mb-4">
-                                    <label for="categoria_search" class="block text-sm font-medium text-gray-700">Buscar Categoría</label>
-                                    <div class="relative mt-1">
-                                        <input type="text" id="categoria_search" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#4CAF50] focus:border-[#4CAF50]" placeholder="Escribe el nombre de la categoría..." autocomplete="off">
-                                        <!-- Lista desplegable con sugerencias -->
-                                        <ul id="categoria_suggestions" class="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 hidden">
-                                            <!-- Las sugerencias se insertarán aquí mediante JavaScript -->
-                                        </ul>
+                                    <div class="flex space-x-4">
+                                        <div class="w-1/2">
+                                            <label for="categoria_search" class="block text-sm font-medium text-gray-700">Buscar Categoría</label>
+                                            <div class="relative mt-1">
+                                                <input type="text" id="categoria_search" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#4CAF50] focus:border-[#4CAF50]" placeholder="Escribe el nombre de la categoría..." autocomplete="off">
+                                                <!-- Lista desplegable con sugerencias -->
+                                                <ul id="categoria_suggestions" class="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 hidden">
+                                                    <!-- Las sugerencias se insertarán aquí mediante JavaScript -->
+                                                </ul>
+                                            </div>
+                                            <input type="hidden" id="selected_categoria" name="categoria_id">
+                                        </div>
+                                        
+                                        <div class="w-1/2">
+                                            <label for="marca" class="block text-sm font-medium text-gray-700">Marca</label>
+                                            <div class="relative mt-1">
+                                                <input type="text" id="marca" name="marca" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#4CAF50] focus:border-[#4CAF50]" placeholder="Escribe el nombre de la marca del producto...">
+                                            </div>
+                                        </div>
                                     </div>
-                                    <input type="hidden" id="selected_categoria" name="categoria_id">
                                 </div>
                                 
                                 <!-- Campo para la descripción del producto -->
@@ -134,7 +145,7 @@
         searchProveedorInput.addEventListener('input', function() {
             const query = searchProveedorInput.value;
             console.log('Buscando proveedor:', query);
-            if (query.length > 2) {
+            if (query.length > 1) {
                 fetch(`/search-proveedores?query=${query}`)
                 .then(response => response.json())
                 .then(data => {
@@ -175,8 +186,8 @@
         searchCategoriaInput.addEventListener('input', function() {
             const query = searchCategoriaInput.value;
             console.log('Buscando categoría:', query);
-            if (query.length > 2) {
-                fetch(`/search-categorias?query=${query}`)
+            if (query.length > 1) {
+                fetch(`/search-categoriasPR?query=${query}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('Datos recibidos categorías:', data); // Añade este log

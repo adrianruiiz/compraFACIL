@@ -18,6 +18,7 @@ class Producto extends Model
         'id_categoria',
         'descripcion',
         'ruta_imagen',
+        'marca',
     ];
     
     public function categoria()

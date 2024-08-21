@@ -76,26 +76,75 @@ class DepartamentoController extends Controller
     /**
     * Show the form for editing the specified resource.
     */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $departamento = Departamento::with('categorias')->findOrFail($id);
+        $categorias = Categoria::all();
+        
+        return view('admin.departamentos.edit', compact('departamento', 'categorias'));
     }
     
-    /**
-    * Update the specified resource in storage.
-    */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        // Validar los datos de entrada
+        $validated = $request->validate([
+            'nombre_departamento' => 'required|string|max:255',
+            'categorias' => 'nullable|array',
+            'categorias.*' => 'nullable|string',
+        ]);
+        
+        // Encontrar el departamento y actualizar su nombre
+        $departamento = Departamento::findOrFail($id);
+        $departamento->update([
+            'nombre_departamento' => $validated['nombre_departamento'],
+        ]);
+        
+        // Eliminar todas las categorías asociadas actualmente
+        DepartamentoCategoria::where('id_departamento', $departamento->id_departamento)->delete();
+        
+        // Si se proporcionan categorías, procesarlas
+        if (isset($validated['categorias']) && !empty($validated['categorias'])) {
+            // Convertir el array de IDs en enteros y eliminar valores no válidos
+            $categoriaIds = array_filter(array_map('intval', explode(',', $validated['categorias'][0])), function ($id) {
+                return $id > 0;
+            });
+            
+            // Agregar las nuevas categorías
+            foreach ($categoriaIds as $categoriaId) {
+                DepartamentoCategoria::create([
+                    'id_departamento' => $departamento->id_departamento,
+                    'id_categoria' => $categoriaId,
+                ]);
+            }
+        }
+        
+        return redirect()->route('admin.departamentos.index')->with('success', 'Departamento actualizado con éxito.');
     }
+    
     
     /**
     * Remove the specified resource from storage.
     */
     public function destroy(string $id)
     {
-        //
+        // Encuentra el departamento por ID
+        $departamento = Departamento::find($id);
+        
+        // Verifica si el departamento tiene categorías asociadas
+        if ($departamento->categorias->isNotEmpty()) {
+            // Redirige con un mensaje de error si tiene categorías
+            return redirect()->route('admin.departamentos.index')
+            ->with('error', 'No se puede eliminar el departamento porque tiene categorías asociadas.');
+        }
+        
+        // Si no tiene categorías, elimina el departamento
+        $departamento->delete();
+        
+        // Redirige con un mensaje de éxito
+        return redirect()->route('admin.departamentos.index')
+        ->with('success', 'Departamento eliminado correctamente.');
     }
+    
     
     
     public function searchCategorias(Request $request)
@@ -109,7 +158,7 @@ class DepartamentoController extends Controller
         
         return response()->json($categorias);
     }
-
+    
     public function search(Request $request)
     {
         $query = $request->input('query');

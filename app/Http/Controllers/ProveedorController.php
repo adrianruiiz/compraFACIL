@@ -13,6 +13,7 @@ class ProveedorController extends Controller
 {
     public function index()
     {
+        //obtener proveedores y mandarlos a la vista
         $proveedores = Proveedor::with('productos')->get();
         return view('admin.proveedores.index', compact('proveedores'));
     }
@@ -24,6 +25,7 @@ class ProveedorController extends Controller
     
     public function store(StoreProveedorRequest $request)
     {
+        //insert en la tabla proveedores
         Proveedor::create($request->validated());
         
         return redirect()->route('admin.proveedores.index')->with('success', 'Proveedor creado con éxito.');

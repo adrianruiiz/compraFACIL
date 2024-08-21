@@ -7,6 +7,7 @@ use App\Models\Proveedor;
 use App\Models\Categoria;
 use App\Models\ProductoProveedor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductoController extends Controller
 {
@@ -29,12 +30,13 @@ class ProductoController extends Controller
         // Validación de datos
         $request->validate([
             'nombre_producto' => 'required',
+            'marca' => 'required',
             'categoria_id' => 'required|exists:categorias,id_categoria',
             'descripcion' => 'required',
             'proveedor_id' => 'required|exists:proveedores,id_proveedor',
             'precio' => 'required|numeric',
             'stock' => 'required|numeric',
-            'imagen' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'imagen' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:8192',
         ]);
         
         // Procesar la imagen y guardarla en el sistema de archivos
@@ -49,6 +51,7 @@ class ProductoController extends Controller
             'nombre_producto' => $request->nombre_producto,
             'id_categoria' => $request->categoria_id,
             'descripcion' => $request->descripcion,
+            'marca' => $request->marca,
             'ruta_imagen' => $path,
         ]);
         
@@ -80,31 +83,35 @@ class ProductoController extends Controller
     
     public function update(Request $request, Producto $producto)
     {
+        // Validar los datos del formulario
         $request->validate([
             'nombre_producto' => 'required',
-            'id_categoria' => 'required|exists:categorias,id_categoria',
+            'marca' => 'required',
+            'categoria_id' => 'required|exists:categorias,id_categoria',
             'descripcion' => 'nullable',
-            'ruta_imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'proveedores' => 'required|array',
-            'proveedores.*.id_proveedor' => 'required|exists:proveedores,id_proveedor',
-            'proveedores.*.precio' => 'nullable|numeric',
-            'proveedores.*.stock' => 'nullable|integer',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
         ]);
         
-        // Actualizar datos del producto
-        $productoData = $request->only(['nombre_producto', 'id_categoria', 'descripcion', 'ruta_imagen']);
-        $producto->update($productoData);
+        // Preparar los datos del producto para la actualización
+        $productoData = $request->only(['nombre_producto', 'categoria_id', 'descripcion', 'marca']);
         
-        // Eliminar las relaciones actuales y crear las nuevas
-        ProductoProveedor::where('id_producto', $producto->id_producto)->delete();
-        foreach ($request->proveedores as $proveedorData) {
-            ProductoProveedor::create([
-                'id_producto' => $producto->id_producto,
-                'id_proveedor' => $proveedorData['id_proveedor'],
-                'precio' => $proveedorData['precio'] ?? null,
-                'stock' => $proveedorData['stock'] ?? null,
-            ]);
+        // Procesar la nueva imagen si se ha subido
+        if ($request->hasFile('imagen')) {
+            // Eliminar la imagen antigua si existe
+            if ($producto->ruta_imagen && Storage::exists(str_replace('storage/', 'public/', $producto->ruta_imagen))) {
+                Storage::delete(str_replace('storage/', 'public/', $producto->ruta_imagen));
+            }
+            
+            // Almacenar la nueva imagen
+            $imagenNombre = time() . '.' . $request->imagen->extension();
+            $request->imagen->move(public_path('images'), $imagenNombre);
+            
+            // Guardar la ruta de la imagen en el formato deseado
+            $productoData['ruta_imagen'] = '/images/' . $imagenNombre;
         }
+        
+        // Actualizar los datos del producto
+        $producto->update($productoData);
         
         return redirect()->route('admin.productos.index')->with('success', 'Producto actualizado con éxito.');
     }
@@ -150,6 +157,41 @@ class ProductoController extends Controller
         return redirect()->route('admin.productos.index')->with('success', 'Proveedor asignado al producto correctamente.');
     }
     
-    
-    
-}
+    public function updateProveedor(Request $request, $productoId, $proveedorId)
+    {
+        // Valida los datos
+        $validated = $request->validate([
+            'precio' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+        ]);
+        
+        // Encuentra el producto al que se le actualizarán los datos del proveedor
+        $producto = Producto::findOrFail($productoId);
+        
+        // Actualiza los datos en la tabla pivote
+        $producto->proveedores()->updateExistingPivot($proveedorId, [
+            'precio' => $validated['precio'],
+            'stock' => $validated['stock'],
+        ]);
+        
+        return redirect()->route('admin.productos.show', $productoId)
+        ->with('success',[ 
+            'message' => 'Producto actualizado con éxito',]);
+        }
+        
+        public function destroyProveedor($productoId, $proveedorId)
+        {
+            // Encuentra el producto
+            $producto = Producto::findOrFail($productoId);
+            
+            // Elimina la relación del proveedor con el producto
+            $producto->proveedores()->detach($proveedorId);
+            
+            return redirect()->route('admin.productos.show', $productoId)
+            ->with('success',[ 
+                'message' => 'Proveedor eliminado correctamente',]);
+                
+            }
+            
+        }
+        

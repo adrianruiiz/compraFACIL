@@ -38,7 +38,7 @@
                     </div>
                 </div>
                 
-                <!-- Columna para Proveedores (más pequeña y con altura ajustada) -->
+                <!-- Columna para Proveedores  -->
                 <div class="bg-white overflow-hidden shadow-md sm:rounded-lg col-span-1 flex flex-col" style="height: 350px;">
                     <div class="p-6 text-gray-900 h-full">
                         <h2 class="text-2xl font-bold mb-4">Proveedor</h2>
@@ -93,7 +93,7 @@
         searchProveedorInput.addEventListener('input', function() {
             const query = searchProveedorInput.value;
             console.log('Buscando proveedor:', query);
-            if (query.length > 2) {
+            if (query.length > 0) {
                 fetch(`/search-proveedores?query=${query}`)
                 .then(response => response.json())
                 .then(data => {

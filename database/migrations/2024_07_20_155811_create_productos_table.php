@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_categoria'); 
             $table->longText('descripcion');
             $table->string('ruta_imagen');
+            $table->string('marca');
             $table->timestamps();
             
             // Relación con la tabla categorias

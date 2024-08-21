@@ -11,32 +11,35 @@ class CategoriaController extends Controller
 {
     public function index()
     {
-        $categorias = Categoria::with('departamentos')->get();
-        $departamentos = Departamento::all();
+        $categorias = Categoria::with('departamentos')->get(); //obtener todas las categorias con departamento
+        $departamentos = Departamento::all(); //obtener todos los departamentos
         return view('admin.categorias.index', compact('categorias','departamentos'));
     }
     
     public function create()
     {
-        $departamentos = Departamento::all();
+        $departamentos = Departamento::all();//obtener todos los departamentos
         return view('admin.categorias.create', compact('departamentos'));
     }
     
     public function store(Request $request)
     {
         //dd($request->all());
+        //validar los datos recibidos
         $request->validate([
             'nombre_categoria' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
         ]);
         
+        //insert en la tabla de Categorias
         $categoria = Categoria::create($request->only('nombre_categoria', 'descripcion'));
         
-        DepartamentoCategoria::create([
-            'id_departamento' => $request->departamento_id,
-            'id_categoria' => $categoria->id_categoria,
-        ]);
-        
+        if ($request['id_departamento']) {
+            DepartamentoCategoria::create([
+                'id_departamento' => $request->departamento_id,
+                'id_categoria' => $categoria->id_categoria,
+            ]);
+        }        
         return redirect()->route('admin.categorias.index')->withSuccess('Categoría agregada correctamente.');
         
     }
@@ -46,32 +49,23 @@ class CategoriaController extends Controller
         return view('admin.categorias.show', compact('categoria'));
     }
     
-    public function edit(Categoria $categoria)
-    {
-        $departamentos = Departamento::all();
-        return view('admin.categorias.edit', compact('categoria', 'departamentos'));
-    }
     
     public function update(Request $request, Categoria $categoria)
     {
         $request->validate([
             'nombre_categoria' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'departamentos' => 'array',
-            'departamentos.*' => 'exists:departamentos,id_departamento',
         ]);
-        
+        //actualizar la categoria
         $categoria->update($request->only('nombre_categoria', 'descripcion'));
         
-        if ($request->has('departamentos')) {
-            $categoria->departamentos()->sync($request->departamentos);
-        }
-        
-        return redirect()->route('admin.categorias.index');
+        return redirect()->route('admin.categorias.index')->with('success', 'Categoría actualizada correctamente.');
     }
+    
     
     public function destroy(Categoria $categoria)
     {
+        //borrar la categoria
         $categoria->delete();
         
         return redirect()->route('admin.categorias.index')->withSuccess('Categoría eliminada correctamente.');
@@ -79,6 +73,7 @@ class CategoriaController extends Controller
     
     public function search(Request $request)
     {
+        //buscador para categorias
         $query = $request->input('query');
         $categorias = Categoria::where('nombre_categoria', 'LIKE', "%$query%")->get();
         return response()->json($categorias);

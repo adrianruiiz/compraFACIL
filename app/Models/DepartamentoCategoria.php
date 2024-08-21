@@ -10,7 +10,7 @@ class DepartamentoCategoria extends Model
     use HasFactory;
     
     protected $table = 'departamentos_categorias'; // Nombre de la tabla en la base de datos
-    protected $primaryKey = 'id_departamento_cat'; // Clave primaria
+    protected $primaryKey = 'id_departamento_cat'; // PK
     
     
     protected $fillable = ['id_departamento', 'id_categoria']; 

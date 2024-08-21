@@ -11,6 +11,13 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     
+    <!-- Flowbite CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.css" rel="stylesheet" />
+    
+    <!-- Flowbite and Popper.js scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.js"></script>
+    
     <!-- Scripts -->
     @vite('resources/css/app.css')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -37,6 +44,7 @@
         </main>
         @yield('scripts')
         
+        @include('components.footer')
     </div>
 </body>
 </html>

@@ -3,12 +3,17 @@
 @section('content')
 <div class="py-12 bg-gray-100">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <!-- Mensaje de éxito -->
+        <!-- Mensajes -->
         @if (session('success'))
-        <div class="bg-green-500 text-white p-4 rounded-lg mb-4">
+        <div class="alert bg-green-500 text-white p-4 rounded-lg mb-4">
             {{ session('success') }}
         </div>
+        @elseif(session('error'))
+        <div class="alert bg-red-500 text-white p-4 rounded-lg mb-4">
+            {{ session('error') }}
+        </div>
         @endif
+        
         
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
             <div class="p-6 text-gray-900">
@@ -75,3 +80,24 @@
     </div>
 </div>
 @endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Selecciona todas las alertas en la página
+        const alerts = document.querySelectorAll('.alert');
+        
+        alerts.forEach(function(alert) {
+            // Después de 3 segundos (3000 milisegundos), oculta la alerta
+            setTimeout(function() {
+                alert.style.opacity = '0'; // Transición de opacidad para un efecto de desvanecimiento
+                alert.style.transition = 'opacity 0.5s'; // Opcional: Añade una transición para que el desvanecimiento sea suave
+                setTimeout(function() {
+                    alert.style.display = 'none'; // Oculta el elemento completamente después de la transición
+                }, 500); // Tiempo de transición
+            }, 3000); // Tiempo en milisegundos antes de comenzar el desvanecimiento
+        });
+    });
+</script>
+@endsection
+
